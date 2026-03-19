@@ -1,13 +1,13 @@
-# Home Ziaka - Homemade Food Delivery Platform
+# FlockPilot - Chicken Marketplace 
 
-A production-level MERN stack food delivery application connecting customers with local home chefs.
+A production-level MERN stack food delivery application connecting customers.
 
 ## Features
 
-- 🍽️ Browse homemade food from local chefs
-- 🥗 Diet-specific meal plans (Keto, Diabetic, Vegan, Desi)
+
+- 🥗 Seller Buyer Teams
 - 🛒 Shopping cart with real-time updates
-- 👨‍🍳 Chef dashboard for menu management
+- 👨‍🍳 Seller dashboard for menu management
 - 🔐 Session-based authentication
 - 📱 Fully responsive design
 - 🎨 Modern UI with Tailwind CSS
@@ -38,7 +38,7 @@ npm run dev
 
 The application supports three user roles:
 - **Customer** - Browse and order food
-- **Chef** - Manage menu and orders
+- **Seller** - Manage menu and orders
 - **Admin** - Platform management
 
 Register via `/signup` and select your role.
@@ -77,4 +77,4 @@ MIT
 
 ---
 
-Built with ❤️ for homemade food lovers
+Built with ❤️ Chciken Marketplace
