@@ -1,0 +1,5 @@
+error: pathspec 'URL' did not match any file(s) known to git
+error: pathspec 'configuration' did not match any file(s) known to git
+error: pathspec 'and' did not match any file(s) known to git
+error: pathspec 'environment' did not match any file(s) known to git
+error: pathspec 'variables'' did not match any file(s) known to git

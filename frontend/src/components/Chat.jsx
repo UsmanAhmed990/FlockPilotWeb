@@ -4,7 +4,7 @@ import axios from '../utils/axios';
 import { io } from 'socket.io-client';
 import { Send } from 'lucide-react';
 
-const socket = io('http://localhost:5020', {
+const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5020', {
     withCredentials: true
 });
 
