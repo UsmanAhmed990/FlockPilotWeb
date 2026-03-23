@@ -11,15 +11,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-<<<<<<< HEAD
         origin: true,
-=======
-        origin: [
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-            "https://your-frontend.onrender.com"
-        ],
->>>>>>> 62aa476 (New updates + fixes)
         methods: ["GET", "POST"],
         credentials: true
     }
