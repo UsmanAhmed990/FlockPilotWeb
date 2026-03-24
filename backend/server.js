@@ -99,6 +99,16 @@ const connectDB = async () => {
     }
 };
 
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+    console.error('GLOBAL ERROR:', err);
+    res.status(err.status || 500).json({
+        success: false,
+        message: err.message || 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? err : {}
+    });
+});
+
 connectDB();
 
 

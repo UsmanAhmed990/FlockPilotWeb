@@ -23,15 +23,24 @@ const userSchema = new mongoose.Schema({
 
 // Password Hashing & Email Normalization Middleware
 userSchema.pre('save', async function () {
-    if (this.email) {
-        this.email = this.email.toLowerCase();
-    }
+    try {
+        console.log('DEBUG: Pre-save hook started for', this.email);
+        if (this.email) {
+            this.email = this.email.toLowerCase();
+        }
 
-    if (!this.isModified('password')) {
-        return;
+        if (!this.isModified('password')) {
+            console.log('DEBUG: Password not modified, skipping hash');
+            return;
+        }
+        console.log('DEBUG: Hashing password...');
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        console.log('DEBUG: Password hashed successfully');
+    } catch (error) {
+        console.error('DEBUG: ERROR in Pre-save hook:', error);
+        throw error;
     }
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
 });
 
 // Compare Password

@@ -16,9 +16,11 @@ const logToFile = (message) => {
 // ================= REGISTER (SIGNUP ONLY) =================
 exports.registerUser = async (req, res) => {
     try {
+        logToFile(`SIGNUP START: role: ${req.body.role}, email: ${req.body.email}`);
         let { name, email, role, phone, password, address } = req.body;
 
         if (!email || !phone || !password) {
+            logToFile(`SIGNUP FAILED: Missing required fields`);
             return res.status(400).json({ message: 'Email, Phone, and Password are required' });
         }
 
@@ -26,11 +28,13 @@ exports.registerUser = async (req, res) => {
 
         // Seller must provide a name/shopname and address
         if (role === 'seller' && (!name || !address)) {
+            logToFile(`SIGNUP FAILED: Seller missing name or address. name: ${name}, address: ${address}`);
             return res.status(400).json({ message: 'Sellers must provide Shop Name and Shop Address' });
         }
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
+            logToFile(`SIGNUP FAILED: User already exists - ${email}`);
             return res.status(409).json({ message: 'User already registered' });
         }
 
@@ -38,6 +42,7 @@ exports.registerUser = async (req, res) => {
         if (name === '') name = undefined;
         if (address === '') address = undefined;
 
+        logToFile(`DEBUG: Creating user with role ${role}`);
         const user = await User.create({
             name: name || (role === 'buyer' ? 'Buyer' : undefined),
             email,
@@ -48,27 +53,41 @@ exports.registerUser = async (req, res) => {
             isVerified: (role === 'seller' || role === 'chef') ? false : true,
             verificationStatus: (role === 'seller' || role === 'chef') ? 'pending' : 'approved'
         });
+        logToFile(`DEBUG: User created successfully. ID: ${user._id}`);
 
         // Non-blocking notifications (won't crash registration if they fail)
         if (role === 'chef' || role === 'seller') {
-            Chef.create({ user: user._id }).catch(err => console.error('Chef create error:', err));
-            createAdminNotification(req, 'signup', `New Seller registered: ${user.name} (${user.email}) - Shop: ${address}`).catch(() => { });
+            logToFile(`DEBUG: Creating Chef and Admin Notification for seller`);
+            Chef.create({ user: user._id }).catch(err => {
+                logToFile(`Chef create error: ${err.message}`);
+                console.error('Chef create error:', err);
+            });
+            createAdminNotification(req, 'signup', `New Seller registered: ${user.name} (${user.email}) - Shop: ${address}`).catch((err) => { 
+                logToFile(`Admin Notification error: ${err.message}`);
+            });
 
             // Handle Certificate
             if (req.file) {
+                logToFile(`DEBUG: File found, creating SellerCertificate: ${req.file.filename}`);
                 SellerCertificate.create({
                     sellerId: user._id,
                     email: user.email,
                     username: user.name,
                     address: user.address,
                     certificateUrl: `/uploads/certificates/${req.file.filename}`
-                }).catch(err => console.error('SellerCertificate create error:', err));
+                }).catch(err => {
+                    logToFile(`SellerCertificate create error: ${err.message}`);
+                    console.error('SellerCertificate create error:', err);
+                });
+            } else {
+                logToFile(`DEBUG: No certificate file found for seller`);
             }
         } else {
             createAdminNotification(req, 'signup', `New Buyer registered: ${user.name || user.email} (${user.phone})`).catch(() => { });
         }
 
         // Send Notification Email (Non-blocking)
+        logToFile(`DEBUG: Sending welcome email to ${user.email}`);
         sendEmail({
             email: user.email,
             subject: `Welcome to FlockPilot - ${role === 'buyer' ? 'Start Your Food Journey!' : 'Grow Your Business!'}`,
@@ -85,12 +104,8 @@ exports.registerUser = async (req, res) => {
                         
                         ${role === 'buyer' ? `
                             <p>Get ready to discover your own marketplace. Fresh ingredients and doorstep delivery — it's all waiting for you.</p>
-                            <div style="text-align: center; margin-top: 30px;">
-                              
                         ` : `
                             <p>Your shop is now part of our growing community of artisan sellers. We'll review your details shortly to get you fully verified and ready to sell.</p>
-                            <div style="text-align: center; margin-top: 30px;">
-                              
                         `}
                         
                         <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
@@ -102,16 +117,25 @@ exports.registerUser = async (req, res) => {
                     </div>
                 </div>
             `
-        }).catch(err => console.error('Background Email Error:', err));
+        }).catch(err => {
+            logToFile(`Background Email Error: ${err.message}`);
+            console.error('Background Email Error:', err);
+        });
 
+        logToFile(`SIGNUP SUCCESS: User ${user.email} registered successfully.`);
         res.status(201).json({
             success: true,
             user
         });
 
     } catch (error) {
+        logToFile(`SIGNUP CRITICAL ERROR: ${error.message}`);
         console.error('REGISTRATION ERROR:', error);
-        res.status(500).json({ message: 'Registration failed' });
+        res.status(500).json({ 
+            message: 'Registration failed', 
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
 
