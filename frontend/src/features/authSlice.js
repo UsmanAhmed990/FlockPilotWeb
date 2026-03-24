@@ -6,7 +6,7 @@ import axios from '../utils/axios';
 ======================= */
 
 
-// REGISTER
+
 export const register = createAsyncThunk(
     'auth/register',
     async (userData, { rejectWithValue }) => {
@@ -14,11 +14,9 @@ export const register = createAsyncThunk(
             const { data } = await axios.post('/api/auth/register', userData);
             return data.user;
         } catch (error) {
-            const errorData = error.response?.data;
-            const errorMessage = errorData?.error 
-                ? `${errorData.message}: ${errorData.error}` 
-                : (errorData?.message || 'Registration failed');
-            return rejectWithValue(errorMessage);
+            return rejectWithValue(
+                error.response?.data?.message || 'Registration failed'
+            );
         }
     }
 );

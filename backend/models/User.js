@@ -13,10 +13,10 @@ const userSchema = new mongoose.Schema({
     resetOtpExpiry: { type: Date },
     resetOtpAttempts: { type: Number, default: 0 },
     isVerified: { type: Boolean, default: false },
-    verificationStatus: { 
-        type: String, 
-        enum: ['pending', 'approved', 'rejected'], 
-        default: 'pending' 
+    verificationStatus: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
     },
     createdAt: { type: Date, default: Date.now }
 });
@@ -24,22 +24,21 @@ const userSchema = new mongoose.Schema({
 // Password Hashing & Email Normalization Middleware
 userSchema.pre('save', async function () {
     try {
-        console.log('DEBUG: Pre-save hook started for', this.email);
         if (this.email) {
             this.email = this.email.toLowerCase();
         }
 
         if (!this.isModified('password')) {
-            console.log('DEBUG: Password not modified, skipping hash');
             return;
         }
-        console.log('DEBUG: Hashing password...');
-        const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt);
+        
+        console.log('DEBUG: Hashing password for:', this.email);
+        const salt = bcrypt.genSaltSync(10);
+        this.password = bcrypt.hashSync(this.password, salt);
         console.log('DEBUG: Password hashed successfully');
-    } catch (error) {
-        console.error('DEBUG: ERROR in Pre-save hook:', error);
-        throw error;
+    } catch (err) {
+        console.error('DEBUG: BCRYPT ERROR:', err);
+        throw err;
     }
 });
 

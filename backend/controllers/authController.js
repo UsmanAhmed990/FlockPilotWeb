@@ -16,6 +16,7 @@ const logToFile = (message) => {
 // ================= REGISTER (SIGNUP ONLY) =================
 exports.registerUser = async (req, res) => {
     try {
+        console.log('DEBUG: REQUEST BODY:', req.body);
         logToFile(`SIGNUP START: role: ${req.body.role}, email: ${req.body.email}`);
         let { name, email, role, phone, password, address } = req.body;
 
@@ -62,7 +63,7 @@ exports.registerUser = async (req, res) => {
                 logToFile(`Chef create error: ${err.message}`);
                 console.error('Chef create error:', err);
             });
-            createAdminNotification(req, 'signup', `New Seller registered: ${user.name} (${user.email}) - Shop: ${address}`).catch((err) => { 
+            createAdminNotification(req, 'signup', `New Seller registered: ${user.name} (${user.email}) - Shop: ${address}`).catch((err) => {
                 logToFile(`Admin Notification error: ${err.message}`);
             });
 
@@ -131,10 +132,9 @@ exports.registerUser = async (req, res) => {
     } catch (error) {
         logToFile(`SIGNUP CRITICAL ERROR: ${error.message}`);
         console.error('REGISTRATION ERROR:', error);
+        // Include error in message so it shows in the alert without frontend changes
         res.status(500).json({ 
-            message: 'Registration failed', 
-            error: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            message: `Registration failed: ${error.message}`
         });
     }
 };
